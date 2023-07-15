@@ -9,7 +9,8 @@ const cors = require('cors');
 app.use(cors());
 app.use(express.json());
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.euxm4cs.mongodb.net/?retryWrites=true&w=majority`;
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.euxm4cs.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.9x2y8za.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -18,17 +19,17 @@ const client = new MongoClient(uri, {
 
 const run = async () => {
   try {
-    const db = client.db('tech-net');
-    const productCollection = db.collection('product');
+    const db = client.db('book-catalogue');
+    const productCollection = db.collection('books');
 
-    app.get('/products', async (req, res) => {
+    app.get('/books', async (req, res) => {
       const cursor = productCollection.find({});
       const product = await cursor.toArray();
 
       res.send({ status: true, data: product });
     });
 
-    app.post('/product', async (req, res) => {
+    app.post('/books', async (req, res) => {
       const product = req.body;
 
       const result = await productCollection.insertOne(product);
@@ -36,7 +37,7 @@ const run = async () => {
       res.send(result);
     });
 
-    app.get('/product/:id', async (req, res) => {
+    app.get('/book/:id', async (req, res) => {
       const id = req.params.id;
 
       const result = await productCollection.findOne({ _id: ObjectId(id) });
@@ -44,7 +45,7 @@ const run = async () => {
       res.send(result);
     });
 
-    app.delete('/product/:id', async (req, res) => {
+    app.delete('/book/:id', async (req, res) => {
       const id = req.params.id;
 
       const result = await productCollection.deleteOne({ _id: ObjectId(id) });
@@ -52,36 +53,50 @@ const run = async () => {
       res.send(result);
     });
 
-    app.post('/comment/:id', async (req, res) => {
-      const productId = req.params.id;
-      const comment = req.body.comment;
+    app.put('/book/:id', async (req, res) => {
+      const id = req.params.id;
+      const updatedBook = req.body;
+    
+      try {
+        const result = await productCollection.updateOne({ _id: ObjectId(id) }, { $set: updatedBook });
+        console.log(result);
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send('Error updating the book.');
+      }
+    });
 
-      console.log(productId);
-      console.log(comment);
+    app.post('/review/:id', async (req, res) => {
+      const productId = req.params.id;
+      const review = req.body.review;
+
+      // console.log(productId);
+      // console.log(comment);
 
       const result = await productCollection.updateOne(
         { _id: ObjectId(productId) },
-        { $push: { comments: comment } }
+        { $push: { reviews: review} }
       );
 
       console.log(result);
 
       if (result.modifiedCount !== 1) {
-        console.error('Product not found or comment not added');
-        res.json({ error: 'Product not found or comment not added' });
+        console.error('Product not found or review not added');
+        res.json({ error: 'Product not found or review not added' });
         return;
       }
 
-      console.log('Comment added successfully');
-      res.json({ message: 'Comment added successfully' });
+      console.log('review added successfully');
+      res.json({ message: 'review added successfully' });
     });
 
-    app.get('/comment/:id', async (req, res) => {
+    app.get('/review/:id', async (req, res) => {
       const productId = req.params.id;
 
       const result = await productCollection.findOne(
         { _id: ObjectId(productId) },
-        { projection: { _id: 0, comments: 1 } }
+        { projection: { _id: 0, reviews: 1 } }
       );
 
       if (result) {
@@ -117,7 +132,7 @@ const run = async () => {
 run().catch((err) => console.log(err));
 
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send('wellcome to bookcatalogue!');
 });
 
 app.listen(port, () => {
