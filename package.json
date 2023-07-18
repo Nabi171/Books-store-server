@@ -6,7 +6,8 @@
   "author": "Nabi",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "build": "echo 'Building the app...'"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -15,6 +16,9 @@
     "mongodb": "^4.12.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.20"
-  }
+    "nodemon": "^2.0.20",
+    "vercel": "^31.0.3"
+  },
+  "keywords": [],
+  "description": ""
 }
